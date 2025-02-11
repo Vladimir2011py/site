@@ -20,6 +20,24 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 600px;
+        }
+        input, button {
+            margin: 10px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
         }
         table {
             width: 100%;
@@ -29,39 +47,57 @@
         th, td {
             padding: 10px;
             border: 1px solid #ccc;
+            text-align: left;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Оценки учеников</h1>
-        <table id="gradesTable">
-            <thead>
-                <tr>
-                    <th>Ученик</th>
-                    <th>Оценки</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
+        <h1>Вход для родителя</h1>
+        <input type="password" id="studentPassword" placeholder="Введите пароль ученика">
+        <button onclick="checkPassword()">Войти</button>
+        <div id="parentInterface" style="display:none;">
+            <h2>Оценки ученика</h2>
+            <table id="gradesTable">
+                <thead>
+                    <tr>
+                        <th>Ученик</th>
+                        <th>Оценки</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
     </div>
     <script>
-        function loadStudents() {
+        function checkPassword() {
+            const password = document.getElementById('studentPassword').value;
             const students = JSON.parse(localStorage.getItem('students')) || {};
-            const tableBody = document.querySelector('#gradesTable tbody');
-            tableBody.innerHTML = '';
-            for (const [studentName, grades] of Object.entries(students)) {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${studentName}</td>
-                    <td>${grades.join(', ')}</td>
-                `;
-                tableBody.appendChild(row);
+            let found = false;
+            for (const [studentName, data] of Object.entries(students)) {
+                if (data.password === password) {
+                    document.getElementById('parentInterface').style.display = 'block';
+                    loadGrades(studentName, data.grades);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                alert('Неверный пароль');
             }
         }
 
-        window.onload = loadStudents;
+        function loadGrades(studentName, grades) {
+            const tableBody = document.querySelector('#gradesTable tbody');
+            tableBody.innerHTML = '';
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${studentName}</td>
+                <td>${grades.join(', ') || 'Нет оценок'}</td>
+            `;
+            tableBody.appendChild(row);
+        }
     </script>
 </body>
 </html>
