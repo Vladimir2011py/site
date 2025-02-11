@@ -20,6 +20,8 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 600px;
         }
         input, button {
             margin: 10px;
@@ -45,6 +47,11 @@
         th, td {
             padding: 10px;
             border: 1px solid #ccc;
+            text-align: left;
+        }
+        .actions {
+            display: flex;
+            gap: 5px;
         }
     </style>
 </head>
@@ -54,16 +61,19 @@
         <input type="password" id="password" placeholder="Введите пароль">
         <button onclick="checkPassword()">Войти</button>
         <div id="teacherInterface" style="display:none;">
-            <h2>Управление оценками</h2>
+            <h2>Управление учениками и оценками</h2>
             <input type="text" id="studentName" placeholder="Имя ученика">
+            <input type="password" id="studentPassword" placeholder="Пароль ученика">
+            <button onclick="addStudent()">Добавить ученика</button>
             <input type="text" id="grade" placeholder="Оценка">
             <button onclick="addGrade()">Добавить оценку</button>
-            <table id="gradesTable">
+            <table id="studentsTable">
                 <thead>
                     <tr>
                         <th>Ученик</th>
+                        <th>Пароль</th>
                         <th>Оценки</th>
-                        <th>Действие</th>
+                        <th>Действия</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -82,15 +92,51 @@
             }
         }
 
+        function addStudent() {
+            const studentName = document.getElementById('studentName').value;
+            const studentPassword = document.getElementById('studentPassword').value;
+            if (studentName && studentPassword) {
+                const students = JSON.parse(localStorage.getItem('students')) || {};
+                if (!students[studentName]) {
+                    students[studentName] = { password: studentPassword, grades: [] };
+                    localStorage.setItem('students', JSON.stringify(students));
+                    loadStudents();
+                } else {
+                    alert('Ученик уже существует');
+                }
+            } else {
+                alert('Заполните все поля');
+            }
+        }
+
         function addGrade() {
             const studentName = document.getElementById('studentName').value;
             const grade = document.getElementById('grade').value;
             if (studentName && grade) {
                 const students = JSON.parse(localStorage.getItem('students')) || {};
-                if (!students[studentName]) {
-                    students[studentName] = [];
+                if (students[studentName]) {
+                    students[studentName].grades.push(grade);
+                    localStorage.setItem('students', JSON.stringify(students));
+                    loadStudents();
+                } else {
+                    alert('Ученик не найден');
                 }
-                students[studentName].push(grade);
+            } else {
+                alert('Заполните все поля');
+            }
+        }
+
+        function deleteStudent(studentName) {
+            const students = JSON.parse(localStorage.getItem('students')) || {};
+            delete students[studentName];
+            localStorage.setItem('students', JSON.stringify(students));
+            loadStudents();
+        }
+
+        function deleteGrade(studentName, index) {
+            const students = JSON.parse(localStorage.getItem('students')) || {};
+            if (students[studentName]) {
+                students[studentName].grades.splice(index, 1);
                 localStorage.setItem('students', JSON.stringify(students));
                 loadStudents();
             }
@@ -98,40 +144,22 @@
 
         function loadStudents() {
             const students = JSON.parse(localStorage.getItem('students')) || {};
-            const tableBody = document.querySelector('#gradesTable tbody');
+            const tableBody = document.querySelector('#studentsTable tbody');
             tableBody.innerHTML = '';
-            for (const [studentName, grades] of Object.entries(students)) {
+            for (const [studentName, data] of Object.entries(students)) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${studentName}</td>
-                    <td>${grades.join(', ')}</td>
-                    <td>
-                        <button onclick="deleteGrade('${studentName}')">Удалить все оценки</button>
-                        ${grades.map((grade, index) => `
-                            <button onclick="deleteSingleGrade('${studentName}', ${index})">Удалить ${grade}</button>
+                    <td>${data.password}</td>
+                    <td>${data.grades.join(', ') || 'Нет оценок'}</td>
+                    <td class="actions">
+                        <button onclick="deleteStudent('${studentName}')">Удалить ученика</button>
+                        ${data.grades.map((grade, index) => `
+                            <button onclick="deleteGrade('${studentName}', ${index})">Удалить ${grade}</button>
                         `).join('')}
                     </td>
                 `;
                 tableBody.appendChild(row);
-            }
-        }
-
-        function deleteGrade(studentName) {
-            const students = JSON.parse(localStorage.getItem('students')) || {};
-            delete students[studentName];
-            localStorage.setItem('students', JSON.stringify(students));
-            loadStudents();
-        }
-
-        function deleteSingleGrade(studentName, index) {
-            const students = JSON.parse(localStorage.getItem('students')) || {};
-            if (students[studentName]) {
-                students[studentName].splice(index, 1);
-                if (students[studentName].length === 0) {
-                    delete students[studentName];
-                }
-                localStorage.setItem('students', JSON.stringify(students));
-                loadStudents();
             }
         }
 
