@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Родитель</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Оценки учеников</h1>
+        <table id="gradesTable">
+            <thead>
+                <tr>
+                    <th>Ученик</th>
+                    <th>Оценки</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <script>
+        function loadStudents() {
+            const students = JSON.parse(localStorage.getItem('students')) || {};
+            const tableBody = document.querySelector('#gradesTable tbody');
+            tableBody.innerHTML = '';
+            for (const [studentName, grades] of Object.entries(students)) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${studentName}</td>
+                    <td>${grades.join(', ')}</td>
+                `;
+                tableBody.appendChild(row);
+            }
+        }
+
+        window.onload = loadStudents;
+    </script>
+</body>
+</html>
