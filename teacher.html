@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Учитель</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input, button {
+            margin: 10px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Вход для учителя</h1>
+        <input type="password" id="password" placeholder="Введите пароль">
+        <button onclick="checkPassword()">Войти</button>
+        <div id="teacherInterface" style="display:none;">
+            <h2>Управление оценками</h2>
+            <input type="text" id="studentName" placeholder="Имя ученика">
+            <input type="text" id="grade" placeholder="Оценка">
+            <button onclick="addGrade()">Добавить оценку</button>
+            <table id="gradesTable">
+                <thead>
+                    <tr>
+                        <th>Ученик</th>
+                        <th>Оценки</th>
+                        <th>Действие</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        function checkPassword() {
+            const password = document.getElementById('password').value;
+            if (password === '228') {
+                document.getElementById('teacherInterface').style.display = 'block';
+                loadStudents();
+            } else {
+                alert('Неверный пароль');
+            }
+        }
+
+        function addGrade() {
+            const studentName = document.getElementById('studentName').value;
+            const grade = document.getElementById('grade').value;
+            if (studentName && grade) {
+                const students = JSON.parse(localStorage.getItem('students')) || {};
+                if (!students[studentName]) {
+                    students[studentName] = [];
+                }
+                students[studentName].push(grade);
+                localStorage.setItem('students', JSON.stringify(students));
+                loadStudents();
+            }
+        }
+
+        function loadStudents() {
+            const students = JSON.parse(localStorage.getItem('students')) || {};
+            const tableBody = document.querySelector('#gradesTable tbody');
+            tableBody.innerHTML = '';
+            for (const [studentName, grades] of Object.entries(students)) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${studentName}</td>
+                    <td>${grades.join(', ')}</td>
+                    <td>
+                        <button onclick="deleteGrade('${studentName}')">Удалить все оценки</button>
+                        ${grades.map((grade, index) => `
+                            <button onclick="deleteSingleGrade('${studentName}', ${index})">Удалить ${grade}</button>
+                        `).join('')}
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            }
+        }
+
+        function deleteGrade(studentName) {
+            const students = JSON.parse(localStorage.getItem('students')) || {};
+            delete students[studentName];
+            localStorage.setItem('students', JSON.stringify(students));
+            loadStudents();
+        }
+
+        function deleteSingleGrade(studentName, index) {
+            const students = JSON.parse(localStorage.getItem('students')) || {};
+            if (students[studentName]) {
+                students[studentName].splice(index, 1);
+                if (students[studentName].length === 0) {
+                    delete students[studentName];
+                }
+                localStorage.setItem('students', JSON.stringify(students));
+                loadStudents();
+            }
+        }
+
+        window.onload = loadStudents;
+    </script>
+</body>
+</html>
